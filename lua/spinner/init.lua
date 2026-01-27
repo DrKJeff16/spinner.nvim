@@ -1,39 +1,37 @@
 local uv = vim.uv
 
----@class spinner.SpinnerOpts
----@field chars? string[]
----@field speed? integer millisecond
+---@class spinner.Event
+---@field text string
+
+---@class spinner.Opts
+---@field texts? string[]
+---@field interval? integer millisecond
 ---@field ttl? integer millisecond
+---@field on_change? fun(event: spinner.Event)
 
 ---@class spinner.Spinner
 ---@field private timer uv.uv_timer_t|nil
+---@field opts spinner.Opts
 local Spinner = {}
 Spinner.__index = Spinner
 
 ---Create a new spinner.
 ---
----@param o? spinner.SpinnerOpts
+---@param o? spinner.Opts
 ---@return spinner.Spinner
-function Spinner:new(o)
+local function new(o)
   local opts = require("spinner.config").opts
-  opts = vim.tbl_extend("force", opts, o or {})
-
-  ---@class spinner.Spinner
-  local sp = setmetatable({
-    opts = opts,
+  return setmetatable({
+    opts = vim.tbl_extend("force", opts, o or {}),
     idx = 0,
     timer = nil,
     enabled = false,
     start_time = 0,
-  }, self)
-
-  return sp
+  }, Spinner)
 end
 
 ---Start spinner.
----
----@param on_frame? function called when spinner move to next frame.
-function Spinner:start(on_frame)
+function Spinner:start()
   if self.enabled then
     return
   end
@@ -47,13 +45,15 @@ function Spinner:start(on_frame)
 
   self.timer:start(
     0,
-    self.opts.speed,
+    self.opts.interval,
     vim.schedule_wrap(function()
-      if on_frame then
-        on_frame()
+      if self.opts.on_change then
+        self.opts.on_change({
+          text = tostring(self),
+        })
       end
-      self.idx = (self.idx % #self.opts.chars) + 1
 
+      self.idx = (self.idx % #self.opts.texts) + 1
       if self.opts.ttl > 0 then
         if uv.now() - self.start_time >= self.opts.ttl then
           self:stop()
@@ -72,13 +72,18 @@ function Spinner:stop()
   end
 
   self.enabled = false
+  if self.opts.on_change then
+    self.opts.on_change({
+      text = tostring(self),
+    })
+  end
 end
 
 function Spinner:__tostring()
-  return self.enabled and self.opts.chars[self.idx] or ""
+  return self.enabled and self.opts.texts[self.idx] or ""
 end
 
----@class spinner.CursorOpts: spinner.SpinnerOpts
+---@class spinner.CursorOpts: spinner.Opts
 ---@field hl_group? string
 ---@field winblend? integer
 ---@field width? integer
@@ -86,150 +91,104 @@ end
 ---@field col? integer
 ---@field zindex? integer
 
----@class spinner.CursorSpinner: spinner.Spinner
-local CursorSpinner = {}
-CursorSpinner.__index = CursorSpinner
-CursorSpinner.__tostring = Spinner.__tostring
-setmetatable(CursorSpinner, { __index = Spinner })
-
 ---Create cursor spinner.
 ---
 ---@param o? spinner.CursorOpts
----@return spinner.CursorSpinner
-function CursorSpinner:new(o)
+---@return spinner.Spinner
+local function cursor_spinner(o)
   local opts = require("spinner.config").opts
   opts = vim.tbl_extend("force", opts, o or {})
-  ---@class spinner.CursorSpinner
-  local sp = Spinner.new(self, opts)
+  local sp = new(opts)
 
-  sp.opts = opts
-  sp.buf = vim.api.nvim_create_buf(false, true)
-  sp.win = nil
-  vim.bo[sp.buf].buftype = "nofile"
-  vim.bo[sp.buf].bufhidden = "wipe"
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = nil
+  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].bufhidden = "wipe"
+
+  if sp.opts.on_change ~= nil then
+    return sp
+  end
+
+  sp.opts.on_change = function(event)
+    if event.text ~= "" then
+      local screen_col = vim.fn.win_screenpos(0)[2] + vim.fn.wincol() - 1
+      local row = opts.row
+      local col = opts.col
+      if screen_col + opts.width > vim.o.columns then
+        col = -col
+      end
+
+      if not win or not vim.api.nvim_win_is_valid(win) then
+        win = vim.api.nvim_open_win(buf, false, {
+          relative = "cursor",
+          row = row,
+          col = col,
+          width = opts.width,
+          height = 1,
+          style = "minimal",
+          focusable = false,
+          border = "none",
+          zindex = opts.zindex,
+          noautocmd = true,
+        })
+
+        vim.wo[win].winhighlight = "Normal:" .. opts.hl_group
+        vim.wo[win].winblend = opts.winblend
+      else
+        vim.api.nvim_win_set_config(win, {
+          relative = "cursor",
+          row = row,
+          col = col,
+        })
+      end
+
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, { tostring(sp) })
+      return
+    end
+
+    if win ~= nil and vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+      win = nil
+    end
+  end
 
   return sp
 end
 
----Start spinner.
----
----@param on_frame? function called when spinner move to next frame.
-function CursorSpinner:start(on_frame)
-  Spinner.start(self, function()
-    if on_frame then
-      on_frame()
+---Create tabline spinner.
+---@param o? spinner.Opts
+local function tabline_spinner(o)
+  local opts = require("spinner.config").opts
+  opts = vim.tbl_extend("force", opts, o or {})
+  local sp = new(opts)
+  if sp.opts.on_change == nil then
+    sp.opts.on_change = function()
+      vim.cmd("redrawtabline")
     end
-
-    local screen_col = vim.fn.win_screenpos(0)[2] + vim.fn.wincol() - 1
-    local row = self.opts.row
-    local col = self.opts.col
-    if screen_col + self.opts.width > vim.o.columns then
-      col = -col
-    end
-
-    if not self.win or not vim.api.nvim_win_is_valid(self.win) then
-      self.win = vim.api.nvim_open_win(self.buf, false, {
-        relative = "cursor",
-        row = row,
-        col = col,
-        width = self.opts.width,
-        height = 1,
-        style = "minimal",
-        focusable = false,
-        border = "none",
-        zindex = self.opts.zindex,
-        noautocmd = true,
-      })
-
-      vim.wo[self.win].winhighlight = "Normal:" .. self.opts.hl_group
-      vim.wo[self.win].winblend = self.opts.winblend
-    else
-      vim.api.nvim_win_set_config(self.win, {
-        relative = "cursor",
-        row = row,
-        col = col,
-      })
-    end
-
-    vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, { tostring(self) })
-  end)
-end
-
----Stop spinner.
-function CursorSpinner:stop()
-  Spinner.stop(self)
-  if self.win ~= nil and vim.api.nvim_win_is_valid(self.win) then
-    vim.api.nvim_win_close(self.win, true)
-    self.win = nil
   end
+  return sp
 end
 
-function CursorSpinner:__tostring()
-  return self.enabled and " " .. Spinner.__tostring(self) .. " " or ""
-end
-
----@class spinner.StatuslineSpinner: spinner.Spinner
-local StatuslineSpinner = {}
-StatuslineSpinner.__index = Spinner
-StatuslineSpinner.__tostring = Spinner.__tostring
-setmetatable(StatuslineSpinner, { __index = Spinner })
-
----Create StatuslineSpinner.
----
----@param opts spinner.SpinnerOpts
----@return spinner.Spinner
-function StatuslineSpinner:new(opts)
-  ---@class spinner.StatuslineSpinner
-  return Spinner.new(self, opts)
-end
-
----Start spinner.
----
----@param on_frame? function
-function StatuslineSpinner:start(on_frame)
-  Spinner.start(self, function()
-    if on_frame then
-      on_frame()
+---Create statusline spinner.
+---@param o? spinner.Opts
+local function statusline_spinner(o)
+  local opts = require("spinner.config").opts
+  opts = vim.tbl_extend("force", opts, o or {})
+  local sp = new(opts)
+  if sp.opts.on_change == nil then
+    sp.opts.on_change = function()
+      vim.cmd("redrawstatus")
     end
-
-    vim.cmd("redrawstatus")
-  end)
-end
-
----@class spinner.TablineSpinner: spinner.Spinner
-local TablineSpinner = {}
-TablineSpinner.__index = Spinner
-TablineSpinner.__tostring = Spinner.__tostring
-setmetatable(TablineSpinner, { __index = Spinner })
-
----Create TablineSpinner.
----
----@param opts spinner.SpinnerOpts
----@return spinner.Spinner
-function TablineSpinner:new(opts)
-  ---@class spinner.TablineSpinner
-  return Spinner.new(self, opts)
-end
-
----Start spinner.
----
----@param on_frame? function
-function TablineSpinner:start(on_frame)
-  Spinner.start(self, function()
-    if on_frame then
-      on_frame()
-    end
-
-    vim.cmd("redrawtabline")
-  end)
+  end
+  return sp
 end
 
 ---@class spinner
 local M = {
-  Spinner = Spinner,
-  CursorSpinner = CursorSpinner,
-  StatuslineSpinner = StatuslineSpinner,
-  TablineSpinner = TablineSpinner,
+  new = new,
+  cursor_spinner = cursor_spinner,
+  tabline_spinner = tabline_spinner,
+  statusline_spinner = statusline_spinner,
   setup = require("spinner.config").setup,
 }
 return M
