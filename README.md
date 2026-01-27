@@ -19,6 +19,13 @@ return {
 }
 ```
 
+Support spinner types:
+
+- Spinner: base implement, can be display anywhere.
+- StatuslineSpinner: spinner in statusline
+- TablineSpinner: spinner in tabline.
+- CursorSpinner: spinner next to the cursor.
+
 Display the spinner next to the cursor:
 
 ```lua
@@ -26,6 +33,9 @@ Display the spinner next to the cursor:
 ```
 
 <img src="example/example.gif" alt="Preview Image" width="580">
+
+More example see:
+[example](https://github.com/xieyonn/spinner.nvim/blob/main/example/example.lua)
 
 ## Options
 
@@ -46,8 +56,3 @@ local default_opts = {
   col = 1, -- CursorSpinner window position, relative to cursor.
 }
 ```
-
-## Example
-
-see
-[example](https://github.com/xieyonn/spinner.nvim/blob/main/example/example.lua)
