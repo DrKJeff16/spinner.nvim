@@ -19,23 +19,36 @@ return {
 }
 ```
 
-Support spinner types:
-
-- Spinner: base implement, can be display anywhere.
-- StatuslineSpinner: spinner in statusline
-- TablineSpinner: spinner in tabline.
-- CursorSpinner: spinner next to the cursor.
-
 Display the spinner next to the cursor:
 
 ```lua
-:= require("spinner").CursorSpinner:new({ ttl = 2000 }):start()
+:= require("spinner").cursor_spinner({ ttl = 2000 }):start()
 ```
 
 <img src="example/example.gif" alt="Preview Image" width="580">
 
-More example see:
-[example](https://github.com/xieyonn/spinner.nvim/blob/main/example/example.lua)
+## APIS
+
+```lua
+local spinner = require(spinner)
+
+-- create a spinner
+local sp = spinner.new()
+-- statusline spinner
+sp = spinner.statusline_spinner()
+--- tabline spinner
+sp = spinner.tabline_spinner()
+--- cursor spinner
+sp = spinner.cursor_spinner()
+
+
+--- start spinner
+sp:start()
+--- sopt spinner
+sp:stop()
+```
+
+see more example: [example](https://github.com/xieyonn/spinner.nvim/blob/main/example/example.lua)
 
 ## Options
 
@@ -43,8 +56,8 @@ Default:
 
 ```lua
 local default_opts = {
-  chars = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
-  speed = 80, -- refresh millisecond.
+  texts = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+  interval = 80, -- refresh millisecond.
   ttl = 0, -- the spinner will automatically stop after that {ttl} millisecond.
 
   -- CursorSpinner

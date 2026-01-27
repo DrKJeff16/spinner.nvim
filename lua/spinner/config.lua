@@ -1,21 +1,10 @@
----@class spinner.Config
+---@class spinner.Config: spinner.Opts, spinner.CursorOpts
 ---@field opts spinner.Opts
 local M = {}
 
----@class spinner.Opts
----@field chars? string[] spinner chars
----@field speed? integer millisecond
----@field ttl? integer millisecond
----
----@field hl_group? string spinner chars hl_group in CursorSpinner
----@field winblend? integer spinner window winblend
----@field zindex? integer spinner window zindex
----@field width? integer single frame char width
----@field row? integer CursorSpinner window position, relative to cursor
----@field col? integer CursorSpinner window position, relative to cursor
-
+---@type spinner.Opts
 local default_opts = {
-  chars = {
+  texts = {
     "⠋",
     "⠙",
     "⠹",
@@ -27,10 +16,10 @@ local default_opts = {
     "⠇",
     "⠏",
   },
-  speed = 80, -- refresh millisecond.
+  interval = 80, -- refresh millisecond.
   ttl = 0, -- the spinner will automatically stop after that {ttl} millisecond.
 
-  -- CursorSpinner
+  -- CursorSpinner Opts
   hl_group = "Spinner", -- link to NormalFloat by default.
   winblend = 60, -- CursorSpinner window option.
   width = 3, -- CursorSpinner window option.
