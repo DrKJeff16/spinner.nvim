@@ -29,71 +29,60 @@ Display the spinner next to the cursor:
 
 ## Usage
 
-Use `require("spinner").new()` to create a spinner object, which you can
-treat as a read-only string (`tostring(sp)`) that updates automatically.
+1. Create a spinner object
 
-You can place it wherever you want to display the spinner.
+```lua
+local sp = require("spinner").new()
+```
 
-To make the spinner actually animate, you need to provide an `on_change()` callback
-(called when spinner move to next frame) so it can refresh the UI.
+> you can treat `sp` as a read-only string that updates automatically.
 
-for example, create a spinner in statusline.
+2. Place `sp` to wherever you want.
+   eg: statusline
+
+```lua
+-- use a global function here.
+function sp_component()
+  return tostring(sp)
+end
+
+vim.o.statusline = vim.o.statusline .. "%!v:lua.sp_component()"
+```
+
+3. In order to make the spinner actually animate, you need to provide an
+   `on_change` callback (called when spinner move to next frame) so it can
+   refresh the UI.
 
 ```lua
 local sp = require("spinner").new({
     on_change = function()
-        -- refresh statusline so the spinner animate.
+        -- refresh statusline
         vim.cmd("redrawstatus")
     end
 })
-```
 
-This is essentially just a function that has already been encapsulated as
-`require("spinner").statusline_spinner()`
-
-### statusline/tabline spinner
-
-```lua
---- 1. create a spinner
+-- This is essentially just a function that has already been encapsulated as `statusline_spinner`.
 local sp = require("spinner").statusline_spinner()
--- local sp = require("spinner").tabline_spinner()
 
---- 2. define a global function
-function sp_component()
-  return tostring(sp)
-  -- you can add extra text here
-  -- return tostring(sp) .. "something"
-end
+--- create a tabline_spinner, which call vim.cmd("redrawtabline") in on_change.
+local sp = require("spinner").tabline_spinner()
 
---- 3. set statusline/tabline
-vim.o.statusline = vim.o.statusline .. "%!v:lua.sp_component()"
--- vim.o.tabline = vim.o.tabline .. "%!v:lua.sp_component()"
-
---- 4. start/stop spinner according to your needs.
-sp:start()
-sp:stop()
-```
-
-### cursor spinner
-
-```lua
+--- create a cursor spinner, which create a floating window to display spinner.
 local sp = require("spinner").cursor_spinner()
---- start spinner
+```
+
+4. start/stop spinner according to your needs.
+
+```lua
 sp:start()
---- stop spinner
 sp:stop()
 ```
 
-### subscribe events
-
-LspProgress:
+A example of subscribe `LspProgress` event:
 
 ```lua
-local sp = require("spinner").statusline_spinner()
-
 local lsp_work_by_client_id = {}
 vim.api.nvim_create_autocmd("LspProgress", {
-  group = mce.augroup("spinner"),
   callback = function(event)
     local kind = event.data.params.value.kind
     local client_id = event.data.client_id
