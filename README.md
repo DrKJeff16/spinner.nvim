@@ -37,13 +37,15 @@ local sp = require("spinner").statusline_spinner()
 -- local sp = require("spinner").tabline_spinner()
 
 --- 2. define a global function
-function lsp_sp_component()
+function sp_component()
   return tostring(sp)
+  -- you can add extra text here
+  -- return tostring(sp) .. "something"
 end
 
 --- 3. set statusline/tabline
-vim.o.statusline = vim.o.statusline .. "%!v:lua.lsp_sp_component()"
--- vim.o.tabline = vim.o.tabline .. "%!v:lua.lsp_sp_component()"
+vim.o.statusline = vim.o.statusline .. "%!v:lua.sp_component()"
+-- vim.o.tabline = vim.o.tabline .. "%!v:lua.sp_component()"
 
 --- 4. start/stop spinner according to your needs.
 sp:start()
@@ -60,7 +62,9 @@ sp:start()
 sp:stop()
 ```
 
-### subscribe to LspProgress
+### subscribe events
+
+LspProgress:
 
 ```lua
 local sp = require("spinner").cursor_spinner()
