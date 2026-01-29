@@ -129,41 +129,39 @@ vim.api.nvim_create_autocmd("LspProgress", {
 
 ---@class spinner.Opts
 ---@field texts? string[]
----@field interval? integer
----@field ttl? integer
----@field initial_delay? integer
----@field on_change? fun(event: spinner.Event)
+---@field interval? integer -- refresh interval millisecond.
+---@field ttl? integer -- the spinner will automatically stop after that {ttl} millisecond.
+---@field initial_delay? integer -- delay display spinner after {initial_delay} millisecond.
+---@field on_change? fun(event: spinner.Event) -- spinner will call {on_change}
+---when spinner animate. use this callback to update UI, eg: redrawstatus
 ```
 
 ### spinner.CursorOpts
 
 ```lua
 ---@class spinner.CursorOpts: spinner.Opts
----@field hl_group? string
----@field winblend? integer
----@field width? integer
----@field row? integer
----@field col? integer
----@field zindex? integer
+---@field hl_group? string -- highlight group for spinner text, link to NormalFloat by default.
+---@field winblend? integer -- CursorSpinner floating window option.
+---@field width? integer -- CursorSpinner floating window option.
+---@field row? integer -- CursorSpinner floating window option.
+---@field col? integer -- CursorSpinner floating window position, relative to cursor.
+---@field zindex? integer -- CursorSpinner floating window position, relative to cursor.
 ```
 
-### Default Options
+### Default Opts
 
 ```lua
 local default_opts = {
   texts = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
-  interval = 80, -- refresh interval millisecond.
-  ttl = 0, -- the spinner will automatically stop after that {ttl} millisecond.
-  initial_delay = 200, -- delay display spinner after {initial_delay} millisecond.
-  on_change = nil, -- spinner will call {on_change} when spinner animate. use
-  --                    this callback to update UI, eg: redrawstatus
-
-  -- CursorSpinner Options
-  hl_group = "Spinner", -- highlight group for spinner text, link to NormalFloat by default.
-  winblend = 60, -- CursorSpinner window option.
-  width = 3, -- CursorSpinner window option.
-  zindex = 50, -- CursorSpinner window option.
-  row = -1, -- CursorSpinner window position, relative to cursor.
-  col = 1, -- CursorSpinner window position, relative to cursor.
+  interval = 80,
+  ttl = 0,
+  initial_delay = 200,
+  on_change = nil,
+  hl_group = "Spinner",
+  winblend = 60,
+  width = 3,
+  zindex = 50,
+  row = -1,
+  col = 1,
 }
 ```
