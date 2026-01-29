@@ -99,14 +99,60 @@ vim.api.nvim_create_autocmd("LspProgress", {
 > LspProgress may emit multiple start/stop events in a short time, spinner can
 > handle this by counting start/stop pairs.
 
-## Options
+## API
 
-Default Options:
+### spinner
+
+```lua
+---@class spinner
+---@field new fun(opts?: spinner.Opts) create a spinner object
+---@field statusline_spinner fun(opts?: spinner.Opts) create a statusline_spinner
+---@field tabline_spinner fun(opts?: spinner.Opts) create a tabline_spinner
+---@field cursor_spinner fun(opts?: spinner.CursorOpts) create a cursor_spinner
+```
+
+### spinner.Spinner
+
+```lua
+---@class spinner.Spinner
+---@field start fun(self: spinner.Spinner) start spinner
+---@field stop fun(self: spinner.Spinner) stop spinner
+---@field __tostring fun(self: spinner.Spinner)
+```
+
+### spinner.Opts
+
+```lua
+---@class spinner.Event
+---@field text string current spinner text.
+---@field enabled boolean true -> start means, false means stop.
+
+---@class spinner.Opts
+---@field texts? string[]
+---@field interval? integer
+---@field ttl? integer
+---@field initial_delay? integer
+---@field on_change? fun(event: spinner.Event)
+```
+
+### spinner.CursorOpts
+
+```lua
+---@class spinner.CursorOpts: spinner.Opts
+---@field hl_group? string
+---@field winblend? integer
+---@field width? integer
+---@field row? integer
+---@field col? integer
+---@field zindex? integer
+```
+
+### Default Options
 
 ```lua
 local default_opts = {
   texts = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
-  interval = 80, -- refresh millisecond.
+  interval = 80, -- refresh interval millisecond.
   ttl = 0, -- the spinner will automatically stop after that {ttl} millisecond.
   initial_delay = 200, -- delay display spinner after {initial_delay} millisecond.
   on_change = nil, -- spinner will call {on_change} when spinner animate. use
@@ -120,14 +166,4 @@ local default_opts = {
   row = -1, -- CursorSpinner window position, relative to cursor.
   col = 1, -- CursorSpinner window position, relative to cursor.
 }
-```
-
-`on_change` callback
-
-```lua
----@class spinner.Event
----@field text string current spinner frame
----@field enabled boolean true -> start, false -> stop
-
----@field on_change? fun(event: spinner.Event)
 ```
