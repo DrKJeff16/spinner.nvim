@@ -1,42 +1,148 @@
----@class spinner.Config: spinner.Opts, spinner.CursorOpts
----@field opts spinner.Opts
 local M = {}
 
----@type spinner.Opts
-local default_opts = {
-  texts = {
-    "⠋",
-    "⠙",
-    "⠹",
-    "⠸",
-    "⠼",
-    "⠴",
-    "⠦",
-    "⠧",
-    "⠇",
-    "⠏",
-  },
-  interval = 80, -- refresh millisecond.
-  ttl = 0, -- the spinner will automatically stop after that {ttl} millisecond.
-  initial_delay = 200, -- delay display spinner after {initial_delay} millisecond.
+---@class spinner.Config
+---@field pattern? string|spinner.Pattern
+---@field ttl_ms? integer
+---@field initial_delay_ms? integer
+---@field placeholder? string|boolean
+---@field cursor_spinner spinner.CursorSpinnerConfig
+---
+---@class spinner.CursorSpinnerConfig
+---@field hl_group? string
+---@field winblend? integer
+---@field zindex? integer
+---@field row? integer
+---@field col? integer
+---@field border? string
 
-  -- CursorSpinner Options
-  hl_group = "Spinner", -- highlight group for spinner text, link to NormalFloat by default.
-  winblend = 60, -- CursorSpinner window option.
-  width = 1, -- CursorSpinner window option.
-  zindex = 50, -- CursorSpinner window option.
-  row = -1, -- CursorSpinner window position, relative to cursor.
-  col = 1, -- CursorSpinner window position, relative to cursor.
+---@type spinner.Config
+local default_config = {
+  -- Pre-defined pattern key name in lua/spinner/pattern.lua
+  pattern = "dots",
+
+  -- Time-to-live in milliseconds since the most recent start, after which the
+  -- spinner stops, preventing it from running indefinitely.
+  ttl_ms = 0,
+
+  -- Milliseconds to wait after startup before showing the spinner.
+  -- This helps prevent the spinner from briefly flashing for short-lived tasks.
+  initial_delay_ms = 0,
+
+  -- Text displayed when the spinner is inactive.
+  -- Used in statusline/tabline/winbar/extmark/cursor
+  --
+  -- true: show an empty string, with length equal to spinner frames.
+  -- false: equals to "".
+  -- or string values
+  --
+  -- eg: show ✔ when lsp progress finished.
+  placeholder = false,
+
+  cursor_spinner = {
+    -- Highlight group for text, use fg of `Comment` by default.
+    hl_group = "Spinner",
+
+    -- CursorSpinner window option.
+    winblend = 60,
+
+    -- CursorSpinner window option.
+    zindex = 50,
+
+    -- CursorSpinner window position, relative to cursor.
+    row = -1,
+
+    -- CursorSpinner window position, relative to cursor.
+    col = 1,
+
+    -- CursorSpinner window option.
+    border = "none",
+  },
 }
 
-M.opts = default_opts
+---@type spinner.Config
+M.global = default_config
+
+---Validate config options using vim.validate
+---@param opts? spinner.Config
+local function validate_config(opts)
+  if not opts then
+    return
+  end
+
+  vim.validate(
+    "opts.pattern",
+    opts.pattern,
+    function(x)
+      if x == nil then
+        return true
+      elseif type(x) == "string" then
+        local patterns = require("spinner.pattern")
+        return patterns[x] ~= nil
+      elseif type(x) == "table" then
+        -- If it's a table, validate that it has interval and frames
+        return x.interval ~= nil
+          and type(x.interval) == "number"
+          and x.frames ~= nil
+          and type(x.frames) == "table"
+          and #x.frames > 0
+      else
+        return false
+      end
+    end,
+    true,
+    "pattern must be a string (existing pattern name) or a table with interval (number) and frames (non-empty table)"
+  )
+
+  vim.validate("opts.ttl_ms", opts.ttl_ms, function(x)
+    return x == nil or (type(x) == "number" and x >= 0)
+  end, true, "ttl_ms must be a number >= 0")
+  vim.validate("opts.initial_delay_ms", opts.initial_delay_ms, function(x)
+    return x == nil or (type(x) == "number" and x >= 0)
+  end, true, "initial_delay_ms must be a number >= 0")
+  vim.validate("opts.placeholder", opts.placeholder, function(x)
+    return x == nil or type(x) == "string" or type(x) == "boolean"
+  end, true, "placeholder must be a string or boolean")
+
+  if opts.cursor_spinner ~= nil then
+    local cs = opts.cursor_spinner
+
+    vim.validate("cs.hl_group", cs.hl_group, function(x)
+      return x == nil or type(x) == "string"
+    end, true, "hl_group must be a string")
+
+    vim.validate("cs.winblend", cs.winblend, function(x)
+      return x == nil or (type(x) == "number" and x >= 0 and x <= 100)
+    end, true, "winblend must be a number between 0 and 100")
+
+    vim.validate("cs.zindex", cs.zindex, function(x)
+      return x == nil or (type(x) == "number" and x >= 0)
+    end, true, "zindex must be a number >= 0")
+
+    vim.validate("cs.row", cs.row, function(x)
+      return x == nil or type(x) == "number"
+    end, true, "row must be a number")
+
+    vim.validate("cs.col", cs.col, function(x)
+      return x == nil or type(x) == "number"
+    end, true, "col must be a number")
+
+    vim.validate("cs.border", cs.border, function(x)
+      return x == nil or type(x) == "string"
+    end, true, "border must be a string")
+  end
+end
 
 ---Setup config.
 ---@param opts? spinner.Config
 function M.setup(opts)
-  M.opts = vim.tbl_extend("force", default_opts, opts or {})
+  validate_config(opts)
+  M.global = vim.tbl_extend("force", default_config, opts or {})
 
-  vim.api.nvim_set_hl(0, "Spinner", { link = "NormalFloat", default = true })
+  -- Get NormalFloat attributes and only apply foreground color
+  local normal_float_hl =
+    vim.api.nvim_get_hl(0, { name = "Comment", link = false })
+  local spinner_hl = { fg = normal_float_hl.fg, default = true }
+  vim.api.nvim_set_hl(0, "Spinner", spinner_hl)
 end
 
 return M

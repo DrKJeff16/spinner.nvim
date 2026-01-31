@@ -1,0 +1,261 @@
+local t = require("t")
+local eq = t.eq
+local engine_module = require("spinner.engine")
+local spy = require("luassert.spy")
+
+describe("engine", function()
+  local engine
+  local state_mock
+
+  before_each(function()
+    state_mock = {
+      start = spy.new(function()
+        return true, nil
+      end),
+      stop = spy.new(function()
+        return false
+      end),
+      pause = spy.new(function() end),
+      render = spy.new(function()
+        return "mock_render"
+      end),
+      step = spy.new(function()
+        return true, nil
+      end),
+      opts = { kind = "statusline" },
+      ui_scope = "statusline",
+      ui_updater = function()
+        return function() end
+      end,
+    }
+
+    local dummy_scheduler = { schedule = function() end }
+    engine = engine_module.new(dummy_scheduler)
+
+    -- Directly assign the mock state to bypass the state factory
+    engine.state_map["test_id"] = state_mock
+  end)
+
+  it("should start spinner and trigger UI update when needed", function()
+    spy.on(engine, "update_ui")
+
+    engine:start("test_id")
+
+    assert.spy(state_mock.start).was.called(1)
+    assert.spy(engine.update_ui).was.called(1)
+  end)
+
+  it("should stop spinner conditionally triggering UI update", function()
+    local state_with_update = {
+      stop = function()
+        return true, true -- fully_stopped, needs_ui_refresh
+      end,
+      opts = { kind = "statusline" },
+      ui_scope = "statusline",
+      ui_updater = function()
+        return function() end
+      end,
+    }
+    spy.on(engine, "update_ui")
+    engine.state_map["test_id"] = state_with_update
+
+    engine:stop("test_id")
+    assert.spy(engine.update_ui).was.called(1)
+
+    -- Reset spy and test state that returns false for UI refresh
+    engine.update_ui:clear()
+    local state_without_update = {
+      stop = function()
+        return true, false -- fully_stopped, no_ui_refresh
+      end,
+      opts = { kind = "statusline" },
+      ui_scope = "statusline",
+      ui_updater = function()
+        return function() end
+      end,
+    }
+    engine.state_map["test_id"] = state_without_update
+
+    engine:stop("test_id")
+    assert.spy(engine.update_ui).was.called(0)
+  end)
+
+  it("should pause spinner", function()
+    engine:pause("test_id")
+
+    assert.spy(state_mock.pause).was.called(1)
+  end)
+
+  it("should render spinner correctly", function()
+    local result = engine:render("test_id")
+
+    assert.spy(state_mock.render).was.called(1)
+    eq("mock_render", result)
+  end)
+
+  it("should step spinner and conditionally trigger UI update", function()
+    local state_with_dirty = {
+      step = spy.new(function()
+        return true, 100
+      end),
+      opts = { kind = "statusline" },
+      ui_scope = "statusline",
+      ui_updater = function()
+        return function() end
+      end,
+    }
+    spy.on(engine, "update_ui")
+
+    engine:step(state_with_dirty)
+    assert.spy(engine.update_ui).was.called(1)
+    assert.spy(state_with_dirty.step).was.called(1)
+
+    -- Reset spy and test state that returns dirty=false
+    engine.update_ui:clear()
+    local state_without_dirty = {
+      step = spy.new(function()
+        return false, 100
+      end),
+      opts = { kind = "statusline" },
+      ui_scope = "statusline",
+      ui_updater = function()
+        return function() end
+      end,
+    }
+
+    engine:step(state_without_dirty)
+    assert.spy(engine.update_ui).was.called(0)
+    assert.spy(state_without_dirty.step).was.called(1)
+  end)
+
+  it("should batch UI updates for same scope", function()
+    local state1 = {
+      step = function()
+        return true, nil
+      end,
+      opts = { kind = "statusline" },
+      ui_scope = "same_scope", -- Same scope for both states
+      ui_updater = function()
+        return function() end
+      end,
+    }
+    local state2 = {
+      step = function()
+        return true, nil
+      end,
+      opts = { kind = "statusline" },
+      ui_scope = "same_scope", -- Same scope for both states
+      ui_updater = function()
+        return function() end
+      end,
+    }
+
+    engine:update_ui(state1)
+    engine:update_ui(state2)
+
+    -- Check that there's only one pending updater for the same scope
+    local count = 0
+    for _ in pairs(engine.pending_ui_updater) do
+      count = count + 1
+    end
+    eq(1, count)
+  end)
+
+  it("should handle UI updates for different scopes separately", function()
+    local state1 = {
+      step = function()
+        return true, nil
+      end,
+      opts = { kind = "statusline" },
+      ui_scope = "statusline", -- Different scopes for each state
+      ui_updater = function()
+        return function() end
+      end,
+    }
+    local state2 = {
+      step = function()
+        return true, nil
+      end,
+      opts = { kind = "tabline" },
+      ui_scope = "tabline", -- Different scopes for each state
+      ui_updater = function()
+        return function() end
+      end,
+    }
+
+    engine:update_ui(state1)
+    engine:update_ui(state2)
+
+    -- Check that there are two pending updaters for different scopes
+    local count = 0
+    for _ in pairs(engine.pending_ui_updater) do
+      count = count + 1
+    end
+    eq(2, count)
+  end)
+
+  it(
+    "should prevent duplicate scheduling when start is called multiple times",
+    function()
+      local schedule_spy = spy.new(function() end)
+      local dummy_scheduler = { schedule = schedule_spy }
+      engine = engine_module.new(dummy_scheduler)
+
+      spy.on(engine, "update_ui")
+
+      -- Create a state that returns nil for next_time on subsequent calls
+      local call_count = 0
+      local state_with_duplicate_protection = {
+        start = function()
+          call_count = call_count + 1
+          if call_count == 1 then
+            return true, nil -- First call: needs UI update, no additional schedule
+          else
+            return false, nil -- Subsequent calls: no UI update, no additional schedule
+          end
+        end,
+        opts = { kind = "statusline" },
+        ui_scope = "statusline",
+        ui_updater = function()
+          return function() end
+        end,
+      }
+      engine.state_map["test_id"] = state_with_duplicate_protection
+
+      -- Call start multiple times
+      engine:start("test_id") -- Should update UI and schedule once
+      engine:start("test_id") -- Should not update UI or schedule again (duplicate protection)
+      engine:start("test_id") -- Should not update UI or schedule again (duplicate protection)
+
+      -- Should only have scheduled once despite multiple start calls
+      assert.spy(schedule_spy).was.called(1)
+      -- Should only have updated UI once (when dirty was true)
+      ---@diagnostic disable-next-line: param-type-mismatch
+      assert.spy(engine.update_ui).was.called(1)
+    end
+  )
+
+  it(
+    "should not schedule multiple UI updates for same scope in quick succession",
+    function()
+      spy.on(engine.scheduler, "schedule")
+
+      local state = {
+        opts = { kind = "statusline" },
+        ui_scope = "statusline",
+        ui_updater = function()
+          return function() end
+        end,
+      }
+
+      -- Call update_ui multiple times quickly (simulating fast spinner)
+      engine:update_ui(state)
+      engine:update_ui(state)
+      engine:update_ui(state)
+      engine:update_ui(state)
+
+      -- Should only schedule once since all updates are for the same scope
+      assert.spy(engine.scheduler.schedule).was.called(1)
+    end
+  )
+end)
