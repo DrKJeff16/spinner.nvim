@@ -1,8 +1,10 @@
-[![codecov](https://img.shields.io/codecov/c/github/xieyonn/spinner.nvim?branch=main)](https://codecov.io/gh/xieyonn/spinner.nvim)
-[![Latest Release](https://img.shields.io/github/v/release/xieyonn/spinner.nvim)](https://github.com/xieyonn/spinner.nvim/releases/latest)
-[![License](https://img.shields.io/github/license/xieyonn/spinner.nvim)](https://github.com/xieyonn/spinner.nvim/blob/main/LICENSE)
+<h1>spinner.nvim</h1>
 
 Extensible spinner framework for Neovim plugins and UI.
+
+[![coverage](https://img.shields.io/codecov/c/github/xieyonn/spinner.nvim?branch=main)](https://codecov.io/gh/xieyonn/spinner.nvim)
+[![release](https://img.shields.io/github/v/release/xieyonn/spinner.nvim)](https://github.com/xieyonn/spinner.nvim/releases/latest)
+[![license](https://img.shields.io/github/license/xieyonn/spinner.nvim)](https://github.com/xieyonn/spinner.nvim/blob/main/LICENSE)
 
 <img src="https://github.com/user-attachments/assets/0f73538e-55c5-4054-bd18-eec4b7c68bbe" width="560" />
 
@@ -273,7 +275,7 @@ vim.o.tabline = vim.o.tabline .. "%!v:lua.my_spinner()"
 
 > spinner.nvim use `vim.cmd("redrawtabline")` to refresh tabline.
 > if you use a plugin to setup tabline, you may need to provide a `on_update_ui`
-> option to refresh tabline. See [statusline](#statusline).
+> option to refresh tabline. See [Statusline](#statusline).
 
 ## Winbar
 
@@ -298,7 +300,7 @@ vim.o.winbar = vim.o.winbar .. "%!v:lua.my_spinner()"
 
 > spinner.nvim use `vim.cmd("redrawstatus")` to refresh winbar.
 > if you use a plugin to setup winbar, you may need to provide a `on_update_ui`
-> option to refresh tabline. See [statusline](#statusline).
+> option to refresh tabline. See [Statusline](#statusline).
 
 ## Cursor
 
@@ -478,8 +480,8 @@ require("spinner").config("my_spinner", {
 Set a default string to display when the spinner is idle.
 
 `spinner.nvim` render spinner as an empty string with length == `len(frame)`,
-you can set `placeholder = false` to disable this features. (will show `""` when
-spinner is idle)
+you can set `placeholder = false` to disable this features. (will show a zero
+length empty string when spinner is idle)
 
 ```lua
 require("spinner").config("my_spinner", {
@@ -514,7 +516,7 @@ If you use a plugin to control the rendering of the statusline/tabline/winbar,
 you probably need to use option `on_update_ui` to let your plugin refresh the
 UI component.
 
-> see statusline section
+see [Statusline](#statusline).
 
 Alternatively, you can use option `on_update_ui` to implement a `custom` spinner.
 
@@ -536,7 +538,7 @@ require("spinner").config("my_spinner", {
 })
 ```
 
-`on_update_ui` function signature see [API Reference](#API Reference)
+`on_update_ui` function signature see [API Reference](#api-reference)
 
 # Commands
 

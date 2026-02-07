@@ -536,8 +536,8 @@ PLACEHOLDER                                              *spinner-placeholder*
 Set a default string to display when the spinner is idle.
 
 `spinner.nvim` render spinner as an empty string with length == `len(frame)`,
-you can set `placeholder = false` to disable this features. (will show `""`
-when spinner is idle)
+you can set `placeholder = false` to disable this features. (will show a zero
+length empty string when spinner is idle)
 
 >lua
     require("spinner").config("my_spinner", {
@@ -575,8 +575,8 @@ If you use a plugin to control the rendering of the statusline/tabline/winbar,
 you probably need to use option `on_update_ui` to let your plugin refresh the
 UI component.
 
+see |spinner-statusline|.
 
-  see statusline section
 Alternatively, you can use option `on_update_ui` to implement a `custom`
 spinner.
 
