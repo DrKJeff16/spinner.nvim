@@ -867,6 +867,25 @@ describe("state", function()
     vim.notify = original_notify
   end)
 
+  it("custom spinner use ui_scope from opts", function()
+    state = new("custom", {
+      kind = "custom",
+      ui_scope = "abc",
+      on_update_ui = function() end,
+    })
+
+    eq("abc", state.ui_scope)
+  end)
+
+  it("custom spinner use custom as default ui_scope", function()
+    state = new("custom", {
+      kind = "custom",
+      on_update_ui = function() end,
+    })
+
+    eq("custom", state.ui_scope)
+  end)
+
   it("should validate cursor-specific options completely", function()
     state = new("test_cursor_complete", {
       kind = "cursor",
