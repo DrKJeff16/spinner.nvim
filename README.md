@@ -69,8 +69,8 @@ in Neovim, `spinner.nvim` refreshes the UI at fixed intervals internally.
 Each spinner is identified by a unique `id`, which `spinner.nvim` uses to manage
 individual spinner states.
 
-Each spinner has a `kind` type, where different kind values indicate the
-Neovim UI component the spinner renders on:
+Each spinner can have a optional option `kind`. Different kind values indicate
+how `spinner.nvim` refresh the Neovim UI:
 
 - `statusline`: statusline
 - `tabline`: tabline
@@ -78,7 +78,9 @@ Neovim UI component the spinner renders on:
 - `extmark`: display spinners in buffer content, like diagnosis message.
 - `cursor`: display spinner next to current cursor.
 - `cmdline`: cmdline
-- `custom`: combine with `on_update_ui` to display spinner anywhere.
+- `custom`: combine with `on_update_ui` to display spinner anywhere. see[Custom Spinner](#custom-spinner)
+
+Use lua api to control spinner:
 
 ```lua
 local spinner = require("spinner")
@@ -637,7 +639,7 @@ With tab completion for spinner IDs.
 ---| spinner.CmdlineOpts -- CommandLine options
 ---
 ---@class spinner.CoreOpts
----@field kind spinner.Kind -- Spinner kind
+---@field kind? spinner.Kind -- Spinner kind
 ---@field pattern? string|spinner.Pattern -- Animation pattern
 ---@field ttl_ms? integer -- Time to live in ms
 ---@field initial_delay_ms? integer -- Initial delay in ms

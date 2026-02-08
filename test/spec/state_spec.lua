@@ -36,6 +36,7 @@ describe("state", function()
     eq(true, state.opts ~= nil)
     eq(true, state.ui_scope ~= nil)
     eq(true, state.ui_updater ~= nil)
+    eq("custom", state.opts.kind)
   end)
 
   it("new() opts.pattern is a string", function()
