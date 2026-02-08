@@ -31,7 +31,7 @@ local STATUS = require("spinner.status")
 ---| spinner.CmdlineOpts -- CommandLine options
 ---
 ---@class spinner.CoreOpts
----@field kind spinner.Kind -- Spinner kind
+---@field kind? spinner.Kind -- Spinner kind
 ---@field pattern? string|spinner.Pattern -- Animation pattern
 ---@field ttl_ms? integer -- Time to live in ms
 ---@field initial_delay_ms? integer -- Initial delay in ms
@@ -201,7 +201,7 @@ local function merge_opts(opts)
 
   opts = opts or {}
 
-  opts.kind = vim.F.if_nil(opts.kind, "statusline")
+  opts.kind = opts.kind or "custom"
   opts.pattern = vim.F.if_nil(opts.pattern, config.global.pattern)
 
   if type(opts.pattern) == "string" then
