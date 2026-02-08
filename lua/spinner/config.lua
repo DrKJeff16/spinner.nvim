@@ -84,19 +84,22 @@ local function validate_config(opts)
     function(x)
       if x == nil then
         return true
-      elseif type(x) == "string" then
+      end
+      if type(x) == "string" then
+        ---@cast x string
         local patterns = require("spinner.pattern")
         return patterns[x] ~= nil
-      elseif type(x) == "table" then
+      end
+      if type(x) == "table" then
         -- If it's a table, validate that it has interval and frames
+        ---@cast x spinner.Pattern
         return x.interval ~= nil
           and type(x.interval) == "number"
           and x.frames ~= nil
           and type(x.frames) == "table"
           and #x.frames > 0
-      else
-        return false
       end
+      return false
     end,
     true,
     "pattern must be a string (existing pattern name) or a table with interval (number) and frames (non-empty table)"
@@ -108,15 +111,23 @@ local function validate_config(opts)
   vim.validate("opts.initial_delay_ms", opts.initial_delay_ms, function(x)
     return x == nil or (type(x) == "number" and x >= 0)
   end, true, "initial_delay_ms must be a number >= 0")
-  vim.validate("opts.placeholder", opts.placeholder, function(x)
-    return x == nil or type(x) == "string" or type(x) == "boolean"
-  end, true, "placeholder must be a string or boolean")
+  vim.validate(
+    "opts.placeholder",
+    opts.placeholder,
+    { "string", "boolean", "nil" },
+    true,
+    "placeholder must be a string or boolean"
+  )
 
   local cs = opts.cursor_spinner
-  if cs ~= nil then
-    vim.validate("cs.hl_group", cs.hl_group, function(x)
-      return x == nil or type(x) == "string"
-    end, true, "hl_group must be a string")
+  if cs then
+    vim.validate(
+      "cs.hl_group",
+      cs.hl_group,
+      { "string", "nil" },
+      true,
+      "hl_group must be a string"
+    )
 
     vim.validate("cs.winblend", cs.winblend, function(x)
       return x == nil or (type(x) == "number" and x >= 0 and x <= 100)
@@ -126,24 +137,40 @@ local function validate_config(opts)
       return x == nil or (type(x) == "number" and x >= 0)
     end, true, "zindex must be a number >= 0")
 
-    vim.validate("cs.row", cs.row, function(x)
-      return x == nil or type(x) == "number"
-    end, true, "row must be a number")
+    vim.validate(
+      "cs.row",
+      cs.row,
+      { "number", "nil" },
+      true,
+      "row must be a number"
+    )
 
-    vim.validate("cs.col", cs.col, function(x)
-      return x == nil or type(x) == "number"
-    end, true, "col must be a number")
+    vim.validate(
+      "cs.col",
+      cs.col,
+      { "number", "nil" },
+      true,
+      "col must be a number"
+    )
 
-    vim.validate("cs.border", cs.border, function(x)
-      return x == nil or type(x) == "string"
-    end, true, "border must be a string")
+    vim.validate(
+      "cs.border",
+      cs.border,
+      { "string", "nil" },
+      true,
+      "border must be a string"
+    )
   end
 
   local es = opts.extmark_spinner
-  if es ~= nil then
-    vim.validate("es.hl_group", es.hl_group, function(x)
-      return x == nil or type(x) == "string"
-    end, true, "hl_group must be a string")
+  if es then
+    vim.validate(
+      "es.hl_group",
+      es.hl_group,
+      { "string", "nil" },
+      true,
+      "hl_group must be a string"
+    )
   end
 end
 
