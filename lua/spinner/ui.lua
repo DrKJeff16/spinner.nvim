@@ -47,8 +47,8 @@ local function get_ui_updater(state)
     ui_scope = "cmdline"
     ui_updater = cmdline(state)
   else
-    ui_scope = "custom"
-    ui_updater = function() end -- will use opts.on_update_ui later
+    ui_scope = opts.ui_scope or "custom"
+    ui_updater = opts.on_update_ui or function() end
   end
 
   return ui_scope, ui_updater
