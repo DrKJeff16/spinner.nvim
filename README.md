@@ -700,6 +700,8 @@ With tab completion for spinner IDs.
 ---@field col integer -- Column position 0-based
 ---@field ns? integer -- Namespace
 ---@field hl_group? string -- Highlight group
+---@field virt_text_pos? string -- options for vim.api.nvim_buf_set_extmark
+---@field virt_text_win_col? integer -- options for `vim.api.nvim_buf_set_extmarks`
 ---
 ---@class spinner.CmdlineOpts: spinner.CoreOpts
 ---@field kind "cmdline" -- CommandLine kind
