@@ -29,35 +29,44 @@ return function(state)
 
     local text = state:render()
 
+    ---@type vim.api.keyset.set_extmark
+    local extmark_opts = {
+      virt_text = { { text, opts.hl_group or "Spinner" } },
+      virt_text_pos = opts.virt_text_pos or "eol",
+    }
+    if opts.virt_text_win_col then
+      extmark_opts.virt_text_win_col = opts.virt_text_win_col
+    end
+
     -- Try to update existing extmark
     if extmark_id then
+      extmark_opts.id = extmark_id
+
       local success = pcall(
         vim.api.nvim_buf_set_extmark,
         opts.bufnr,
         ns,
         opts.row,
         opts.col,
-        {
-          id = extmark_id,
-          virt_text = { { text, opts.hl_group or "Spinner" } },
-          virt_text_pos = "eol",
-        }
+        extmark_opts
       )
 
-      -- If update succeeds, nothing more to do
       if success then
         return
       end
-      -- If update fails, clear the ID so we create a new extmark
+
       extmark_id = nil
     end
 
     -- Create a new extmark
-    local ok, id =
-      pcall(vim.api.nvim_buf_set_extmark, opts.bufnr, ns, opts.row, opts.col, {
-        virt_text = { { text, opts.hl_group or "Spinner" } },
-        virt_text_pos = "eol",
-      })
+    local ok, id = pcall(
+      vim.api.nvim_buf_set_extmark,
+      opts.bufnr,
+      ns,
+      opts.row,
+      opts.col,
+      extmark_opts
+    )
 
     if not ok then
       return

@@ -453,13 +453,35 @@ Configure an `extmark` spinner with id.
     
       ns = 0, -- namespace, optional
       hl_group = "Spinner" -- hl_group for text, optional
+      virt_text_pos = "eol" -- options for `vim.api.nvim_buf_set_extmark`, optional
+      virt_text_win_col = nil -- options for `vim.api.nvim_buf_set_extmarks`, optional
     })
 <
 
+`virt_text_pos` and `virt_text_win_col` determine spinner position.
 
-  spinner.nvim uses `vim.api.nvim_buf_set_extmarks()` to refresh UI. It uses
-  virt_text_pos = "eol" right after eol character. See `h:
-  nvim_buf_set_extmarks()`.
+  ---------------------------------------------------------------------------------
+  virt_text_pos   virt_text_win_col   Description
+  --------------- ------------------- ---------------------------------------------
+  overlay         nil                 Draws at the col anchor
+
+  overlay         integer             Draws at the specified window column,
+                                      ignoring col
+
+  eol             nil                 Draws at the end of the line
+
+  eol             integer             virt_text_win_col is ignored
+
+  right_align     nil                 Aligns text to the right of the window
+
+  right_align     integer             virt_text_win_col is ignored
+
+  inline          nil                 Inserts at the specified col
+
+  inline          integer             virt_text_win_col is ignored
+  ---------------------------------------------------------------------------------
+
+  See `h: nvim_buf_set_extmarks()`.
 
 CMDLINE                                                      *spinner-cmdline*
 
