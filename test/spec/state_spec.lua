@@ -778,6 +778,8 @@ describe("state", function()
       col = 20,
       ns = 100,
       hl_group = "TestHighlight",
+      virt_text_pos = "abc",
+      virt_text_win_col = 1,
     })
 
     eq(1, state.opts.bufnr)
@@ -785,6 +787,8 @@ describe("state", function()
     eq(20, state.opts.col)
     eq(100, state.opts.ns)
     eq("TestHighlight", state.opts.hl_group)
+    eq("abc", state.opts.virt_text_pos)
+    eq(1, state.opts.virt_text_win_col)
   end)
 
   it("should validate cmdline-specific options", function()

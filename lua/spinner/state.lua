@@ -66,6 +66,8 @@ local STATUS = require("spinner.status")
 ---@field col integer -- Column position 0-based
 ---@field ns? integer -- Namespace
 ---@field hl_group? string -- Highlight group
+---@field virt_text_pos? string -- options for vim.api.nvim_buf_set_extmark
+---@field virt_text_win_col? integer -- options for `vim.api.nvim_buf_set_extmarks`
 ---
 ---@class spinner.CmdlineOpts: spinner.CoreOpts
 ---@field kind "cmdline" -- CommandLine kind
@@ -190,6 +192,20 @@ local function validate_opts(opts)
     vim.validate("opts.row", opts.row, "number", true, "row must be a number")
     vim.validate("opts.col", opts.col, "number", true, "col must be a number")
     vim.validate("opts.ns", opts.ns, "number", true, "ns must be a number")
+    vim.validate(
+      "opts.virt_text_pos",
+      opts.virt_text_pos,
+      "string",
+      true,
+      "virt_text_pos must be a string"
+    )
+    vim.validate(
+      "opts.virt_text_win_col",
+      opts.virt_text_win_col,
+      "number",
+      true,
+      "virt_text_win_col must be a number"
+    )
   end
 
   if opts.kind == "custom" and opts.on_update_ui == nil then
