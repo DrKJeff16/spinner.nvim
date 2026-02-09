@@ -24,6 +24,7 @@ Extensible spinner framework for Neovim plugins and UI.
 
 - [Getting Started](#getting-started)
     - [Installation](#installation)
+    - [Preview](#preview)
     - [Setup](#setup)
 - [Example](#example)
 - [Usage](#usage)
@@ -100,6 +101,14 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     require("spinner").setup()
   end
 }
+```
+
+## Preview
+
+Type in command line:
+
+```vim
+= require("spinner.demo").open()
 ```
 
 ## Setup
