@@ -7,6 +7,7 @@ Table of Contents                                  *spinner-table-of-contents*
 2. Features                                                 |spinner-features|
 3. Getting Started                                   |spinner-getting-started|
   - Installation                                        |spinner-installation|
+  - Preview                                                  |spinner-preview|
   - Setup                                                      |spinner-setup|
 4. Example                                                   |spinner-example|
 5. Usage                                                       |spinner-usage|
@@ -117,6 +118,15 @@ Using lazy.nvim <https://github.com/folke/lazy.nvim>:
         require("spinner").setup()
       end
     }
+<
+
+
+PREVIEW                                                      *spinner-preview*
+
+Type in command line:
+
+>vim
+    = require("spinner.demo").open()
 <
 
 

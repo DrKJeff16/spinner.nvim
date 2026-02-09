@@ -120,4 +120,17 @@ function M.deduplicate_list(list)
   return result
 end
 
+---Create a scratch buffer
+---@return integer
+function M.create_scratch_buffer()
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
+  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+  vim.api.nvim_set_option_value("filetype", "spinner", { buf = buf })
+  vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
+  vim.api.nvim_set_option_value("undofile", false, { buf = buf })
+  return buf
+end
+
 return M

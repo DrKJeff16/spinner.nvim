@@ -1,15 +1,5 @@
 local STATUS = require("spinner.status")
-
-local function create_buf()
-  local buf = vim.api.nvim_create_buf(false, true)
-
-  vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
-  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
-  vim.api.nvim_set_option_value("filetype", "spinner", { buf = buf })
-  vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
-  vim.api.nvim_set_option_value("undofile", false, { buf = buf })
-  return buf
-end
+local utils = require("spinner.utils")
 
 ---@param state spinner.State
 ---@return function
@@ -28,7 +18,7 @@ return function(state)
     end
 
     if not (buf and vim.api.nvim_buf_is_valid(buf)) then
-      buf = create_buf()
+      buf = utils.create_scratch_buffer()
     end
     local text = state:render()
     local width = vim.fn.strdisplaywidth(text)

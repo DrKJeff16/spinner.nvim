@@ -7,5 +7,6 @@ return {
     "lua/spinner/ui",
     "lua/spinner/pattern",
     "lua/spinner/config",
+    "lua/spinner/demo",
   },
 }
