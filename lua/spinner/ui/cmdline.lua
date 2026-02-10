@@ -1,6 +1,7 @@
 local STATUS = require("spinner.status")
 
 ---@param state spinner.State
+---@return function
 return function(state)
   return function()
     if state.status == STATUS.STOPPED or state.status == STATUS.PAUSED then
