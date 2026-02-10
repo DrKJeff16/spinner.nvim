@@ -392,7 +392,7 @@ function M:stop(force)
   if force == true then
     if self.status == STATUS.STOPPED then
       -- Already stopped, no UI refresh needed
-      return true, false -- Fully stopped, no UI refresh
+      return true, false
     end
     do_stop(self)
     return true, true -- Fully stopped, needs UI refresh
@@ -400,24 +400,25 @@ function M:stop(force)
 
   if self.status == STATUS.STOPPED then
     -- Already stopped, no UI refresh needed
-    return true, false -- Fully stopped, no UI refresh
+    return true, false
   end
 
   if self.active <= 0 then
     -- No active references, not fully stopped but no UI refresh needed
-    return false, false -- Not fully stopped, no UI refresh
+    return false, false
   end
 
   self.active = self.active - 1
   if self.active > 0 then
     -- no enough call times for stop(), spinner still running
-    return false, false -- Not fully stopped, no UI refresh
+    return false, false
   end
 
   do_stop(self)
   return true, true -- Fully stopped, needs UI refresh
 end
 
+---Pause status
 function M:pause()
   if STATUS.RUNNING == self.status or STATUS.DELAYED == self.status then
     self.status = STATUS.PAUSED
@@ -425,7 +426,7 @@ function M:pause()
   end
 end
 
----comment
+---Run on every schedule tick.
 ---@param now_ms integer
 ---@return boolean
 ---@return integer|nil
@@ -456,7 +457,7 @@ function M:step(now_ms)
   return self:spin(now_ms)
 end
 
----Spin
+---Spin frames
 ---@param now_ms integer current schedule time
 ---@return boolean true means need update UI.
 ---@return integer|nil next schedule time, relative time

@@ -1,7 +1,7 @@
 local set = require("spinner.set")
 local utils = require("spinner.utils")
 
----@class spinner.event.LSP
+---@class spinner.event.lsp
 local M = {}
 
 ---Check client_id is what we want
