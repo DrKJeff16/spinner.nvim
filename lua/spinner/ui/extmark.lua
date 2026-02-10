@@ -6,16 +6,21 @@ local spinner_ns = vim.api.nvim_create_namespace("spinner.nvim")
 ---@return function
 return function(state)
   local extmark_id = nil ---@type integer|nil
+  local stop = function()
+    require("spinner").stop(state.id, true)
+  end
 
   return function()
     local opts = state.opts
     local ns = opts.ns or spinner_ns
 
     if not opts.bufnr or not opts.row or not opts.col then
+      stop()
       return
     end
 
     if not vim.api.nvim_buf_is_valid(opts.bufnr) then
+      stop()
       return
     end
 
@@ -69,6 +74,7 @@ return function(state)
     )
 
     if not ok then
+      stop()
       return
     end
 
