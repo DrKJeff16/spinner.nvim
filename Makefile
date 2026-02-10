@@ -21,4 +21,4 @@ cov:
 	@sed -n '/Summary/,$$p' luacov.report.out
 doc:
 	@scripts/doc.sh
-	doctoc README.md
+	@doctoc README.md

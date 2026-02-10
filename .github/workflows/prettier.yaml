@@ -1,0 +1,26 @@
+name: Prettier
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - main
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Install Prettier
+        run: |
+          npm install -g prettier
+      - name: Check formatting
+        run: |
+          prettier -c .
