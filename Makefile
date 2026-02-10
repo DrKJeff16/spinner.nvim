@@ -7,7 +7,7 @@ YAML_FILES := $(shell find . \( -name "*.yml" -o -name "*.yaml" \) ! -path "./.g
 
 .PHONY: fmt test cov doc
 
-fmt:
+fmt: doc
 	@stylua $(LUA_FILES)
 	@prettier --write $(MD_FILES)
 	@prettier --write $(YAML_FILES)
@@ -21,5 +21,4 @@ cov:
 	@sed -n '/Summary/,$$p' luacov.report.out
 doc:
 	@scripts/doc.sh
-	doctoc README.md
-	@$(MAKE) fmt
+	@doctoc README.md
