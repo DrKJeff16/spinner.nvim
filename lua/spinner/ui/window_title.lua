@@ -21,7 +21,8 @@ return function(state, kind)
       vim.notify(
         ("[spinner.nvim] can not display spinner in win: %d, this is no a float window"):format(
           win
-        )
+        ),
+        vim.log.levels.WARN
       )
       require("spinner").stop(state.id, true)
     end
