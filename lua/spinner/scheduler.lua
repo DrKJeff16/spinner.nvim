@@ -74,7 +74,10 @@ function M:_start_timer(delay)
 
   local ok, timer = pcall(uv.new_timer)
   if not (ok and timer) then
-    vim.notify("[spinner.nvim]: failed to create uv timer", vim.log.levels.WARN)
+    vim.notify_once(
+      "[spinner.nvim]: failed to create uv timer",
+      vim.log.levels.ERROR
+    )
     return
   end
 
