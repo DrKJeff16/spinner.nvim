@@ -277,11 +277,7 @@ describe("engine", function()
 
     -- Create a state with an updater that throws an error
     local error_state = require("spinner.state").new("error_test", {
-      kind = "statusline", -- Need to specify kind
-      pattern = {
-        frames = { "a", "b" },
-        interval = 100,
-      },
+      kind = "statusline",
     })
 
     error_state.ui_updater = function()
@@ -294,7 +290,7 @@ describe("engine", function()
 
     -- Process the scheduler immediately to trigger the error handling
     -- Since we're using a real scheduler, we need to wait for it to process
-    vim.wait(100) -- Wait 100ms for scheduler to process
+    vim.wait(100)
 
     -- Check that notification was sent (the error should have been caught)
     eq(true, notify_called)
@@ -307,67 +303,39 @@ describe("engine", function()
   it("should schedule step when start returns a next_time", function()
     -- Create a real scheduler and state
     local scheduler = require("spinner.scheduler").new()
-    local engine = require("spinner.engine").new(scheduler)
+    engine = require("spinner.engine").new(scheduler)
 
-    local state_with_next_time =
-      require("spinner.state").new("next_time_test", {
-        kind = "statusline", -- Need to specify kind
-        pattern = {
-          frames = { "a", "b" },
-          interval = 100,
-        },
-        initial_delay_ms = 10, -- Small delay to trigger next_time scheduling
-      })
+    local state = require("spinner.state").new("next_time_test", {
+      kind = "statusline",
+    })
 
-    state_with_next_time.ui_updater = function() end
-    state_with_next_time.ui_scope = "statusline"
+    state.ui_updater = function() end
+    state.ui_scope = "statusline"
 
-    -- Add the state to the engine's state map
-    engine.state_map["next_time_test"] = state_with_next_time
+    engine.state_map["next_time_test"] = state
 
-    -- Spy on the step method to check if it's called
     local step_spy = spy.on(engine, "step")
-
-    -- Start the spinner - this should schedule a step
     engine:start("next_time_test")
-
-    -- Wait for scheduler to process
     vim.wait(100)
 
     ---@diagnostic disable-next-line :param-type-mismatch
     assert.spy(engine.step).was.called_at_least(1)
 
-    -- Clean up spy
     step_spy:revert()
-  end)
-
-  it("should config spinner options", function()
-    local config_called = false
-    local config_opts = nil
-
-    local state_for_config = {
-      config = function(_, opts)
-        config_called = true
-        config_opts = opts
-      end,
-      opts = { kind = "statusline" },
-      ui_scope = "statusline",
-      ui_updater = function() end,
-    }
-    engine.state_map["config_test"] = state_for_config
-
-    local test_opts = { pattern = "dots", ttl_ms = 5000 }
-
-    -- Config the spinner with new options
-    engine:config("config_test", test_opts)
-
-    eq(true, config_called)
-    eq(test_opts, config_opts)
   end)
 
   it("should auto create spinner state", function()
     local state = engine.state_map.spinner_id
     eq(true, state ~= nil)
     eq(state, engine.state_map.spinner_id)
+  end)
+
+  it("shoud call state.config", function()
+    ---@type spinner.Opts
+    local opts = { kind = "statusline", placeholder = "abc" }
+    engine.state_map["test_id"] = require("spinner.state").new("test_id")
+
+    engine:config("test_id", opts)
+    eq("abc", engine.state_map["test_id"].opts.placeholder)
   end)
 end)

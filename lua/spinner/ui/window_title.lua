@@ -18,11 +18,11 @@ return function(state, kind)
 
     local cfg = vim.api.nvim_win_get_config(win)
     if cfg.relative == "" then
-      vim.notify(
+      vim.notify_once(
         ("[spinner.nvim] can not display spinner in win: %d, this is no a float window"):format(
           win
         ),
-        vim.log.levels.WARN
+        vim.log.levels.ERROR
       )
       require("spinner").stop(state.id, true)
     end

@@ -352,8 +352,8 @@ function M:render()
 end
 
 ---Start spinner.
----@return boolean need refresh UI
----@return integer|nil next schedule time, nil means no schedule.
+---@return boolean need_refresh_ui
+---@return integer|nil next_time, nil means no schedule.
 function M:start()
   if STATUS.PAUSED == self.status then
     local now_ms = utils.now_ms()
@@ -452,8 +452,8 @@ end
 
 ---Run on every schedule tick.
 ---@param now_ms integer
----@return boolean
----@return integer|nil
+---@return boolean need_refresh_ui
+---@return integer|nil next_time, nil means no schedule.
 function M:step(now_ms)
   if STATUS.STOPPED == self.status or STATUS.PAUSED == self.status then
     return false, nil

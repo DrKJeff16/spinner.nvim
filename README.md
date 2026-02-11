@@ -509,7 +509,7 @@ A preview:
 
 # Extend
 
-`spinner.nvim` decides when to refresh the UI, and you decide where and how to do it.
+`spinner.nvim` decides when to refresh the UI, you decide where and how.
 
 Use option `on_update_ui` to implement a `custom` spinner.
 

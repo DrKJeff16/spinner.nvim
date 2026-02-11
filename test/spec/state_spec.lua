@@ -1061,4 +1061,42 @@ describe("state", function()
       end)
     end
   )
+
+  it(
+    "shoud step() not refresh ui if call step within DELAYED status",
+    function()
+      state = new("test", {
+        kind = "statusline",
+        initial_delay_ms = 500,
+      })
+      state:start()
+
+      eq(STATUS.DELAYED, state.status)
+      local need_refresh_ui, next_time = state:step(now + 200)
+      eq(false, need_refresh_ui)
+      eq(300, next_time)
+    end
+  )
+
+  it(
+    "shoud step() DELAYED -> RUNNING if now > start_time + initial_delay_ms",
+    function()
+      state = new("test", {
+        kind = "statusline",
+        initial_delay_ms = 200,
+        pattern = {
+          interval = 100,
+          frames = { "a", "b" },
+        },
+      })
+      state:start()
+      eq(STATUS.DELAYED, state.status)
+
+      now = now + 300
+      local need_refresh_ui, next_time = state:step(now)
+      eq(true, need_refresh_ui)
+      eq(100, next_time)
+      eq(STATUS.RUNNING, state.status)
+    end
+  )
 end)

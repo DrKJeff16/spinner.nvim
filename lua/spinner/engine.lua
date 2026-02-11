@@ -47,9 +47,9 @@ function M:update_ui(state)
       table.insert(keys_to_remove, k)
       local ok, err = pcall(updater)
       if not ok then
-        vim.notify(
+        vim.notify_once(
           ("[spinner.nvim]: fail to refresh ui: %s"):format(err),
-          vim.log.levels.INFO
+          vim.log.levels.ERROR
         )
       end
     end
