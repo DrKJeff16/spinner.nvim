@@ -1126,4 +1126,16 @@ describe("state", function()
       eq("%#abc#123%*", state:render())
     end
   end)
+
+  it(
+    "shoud keep backward compatibility for set hl_group for statusline/tabline/winbar",
+    function()
+      for _, kind in ipairs({ "statusline", "tabline", "winbar" }) do
+        state = new("test", {
+          kind = kind,
+        })
+        eq(nil, state.opts.placeholder)
+      end
+    end
+  )
 end)

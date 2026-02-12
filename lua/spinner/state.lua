@@ -284,7 +284,6 @@ local function merge_opts(opts)
   opts.initial_delay_ms =
     vim.F.if_nil(opts.initial_delay_ms, config.global.initial_delay_ms)
 
-  opts.hl_group = vim.F.if_nil(opts.hl_group, config.global.hl_group)
   if opts.kind == "cursor" then
     opts.winblend =
       vim.F.if_nil(opts.winblend, config.global.cursor_spinner.winblend)
@@ -295,6 +294,14 @@ local function merge_opts(opts)
 
   if opts.kind == "window-title" or opts.kind == "window-footer" then
     opts.pos = opts.pos or "center"
+  end
+
+  --for backward compatibility, statusline/tabline/winbar do not use global hl_group
+  --before v1.0.4
+  if
+    not vim.list_contains({ "statusline", "tabline", "winbar" }, opts.kind)
+  then
+    opts.hl_group = vim.F.if_nil(opts.hl_group, config.global.hl_group)
   end
 
   return opts
@@ -324,7 +331,11 @@ function M:render()
     end
 
     if
-      vim.list_contains({ "statusline", "tabline", "winbar" }, self.opts.kind)
+      self.opts.hl_group
+      and vim.list_contains(
+        { "statusline", "tabline", "winbar" },
+        self.opts.kind
+      )
     then
       -- %#hl_group# text %*
       text = string.format("%%#%s#%s%%*", self.opts.hl_group, text)
@@ -496,6 +507,14 @@ function M:spin(now_ms)
 end
 
 function M:config(opts)
+  --for backward compatibility, statusline/tabline/winbar do not use global hl_group
+  --before v1.0.4
+  if
+    opts and vim.list_contains({ "statusline", "tabline", "winbar" }, opts.kind)
+  then
+    self.opts.hl_group = opts.hl_group
+  end
+
   opts = vim.tbl_extend("force", self.opts or {}, opts or {})
   self.opts = merge_opts(opts)
 

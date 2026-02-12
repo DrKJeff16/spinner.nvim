@@ -690,7 +690,9 @@ require("spinner").setup({
 })
 ```
 
-> statusline / tabline / winbar will wrap text in format `%#HL_GROUP#...%*`
+> statusline / tabline / winbar will wrap text in format `%#HL_GROUP#...%*` and
+> requires explicit setting in `config()` rather then `setup()` for backward
+> compatibility
 
 # Commands
 
