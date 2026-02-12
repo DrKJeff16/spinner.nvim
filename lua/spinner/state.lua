@@ -553,27 +553,34 @@ end
 ---@return boolean true if spinner needs UI refresh, false if no refresh needed
 function M:stop(force)
   if force == true then
-    if self.status == STATUS.STOPPED or self.status == STATUS.INIT then
-      -- Already stopped or never started, no UI refresh needed
+    if STATUS.INIT == self.status then
+      -- INIT -> STOPPED, need refresh ui
+      do_stop(self)
+      return true, true
+    end
+
+    if self.status == STATUS.STOPPED then
+      -- Already stopped, no need refresh ui
       return true, false
     end
+
     do_stop(self)
-    return true, true -- Fully stopped, needs UI refresh
+    return true, true -- Fully stopped, need refresh ui
   end
 
   if self.status == STATUS.STOPPED then
-    -- Already stopped, no UI refresh needed
+    -- Already stopped, no need refresh ui
     return true, false
   end
 
   if self.status == STATUS.INIT then
-    -- Never started, converts INIT to STOPPED, need ui refresh
+    -- Never started, converts INIT to STOPPED, need refresh ui
     do_stop(self)
     return true, true
   end
 
   if self.active <= 0 then
-    -- No active references, not fully stopped but no UI refresh needed
+    -- No active references, not fully stopped but no need refresh ui
     return false, false
   end
 
@@ -600,11 +607,18 @@ end
 ---@return boolean need_refresh_ui
 ---@return integer|nil next_time, nil means no schedule.
 function M:step(now_ms)
-  if
-    STATUS.STOPPED == self.status
-    or STATUS.PAUSED == self.status
-    or STATUS.INIT == self.status
-  then
+  --already call reset, no need refresh ui, no next schedule.
+  if STATUS.INIT == self.status then
+    return false, nil
+  end
+
+  -- pause need to refresh ui, eg: update cursor spinner position
+  if STATUS.PAUSED == self.status then
+    return true, self.opts.pattern.interval
+  end
+
+  --already stopped, no need refresh ui, no next schedule.
+  if STATUS.STOPPED == self.status then
     return false, nil
   end
 
@@ -620,6 +634,7 @@ function M:step(now_ms)
   if STATUS.DELAYED == self.status then
     local delay_end = self.start_time + self.opts.initial_delay_ms
     if now_ms < delay_end then
+      -- initial_delay_ms not expires.
       return false, delay_end - now_ms
     end
 
@@ -673,6 +688,16 @@ function M:config(opts)
   if self.opts.attach then
     event.attach(self.id, self.opts.attach)
   end
+end
+
+---Reset spinner.
+function M:reset()
+  self.started = false
+  self.index = 1
+  self.active = 0
+  self.status = STATUS.INIT
+  self.start_time = 0
+  self.last_spin = 0
 end
 
 ---Create a state

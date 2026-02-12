@@ -224,12 +224,28 @@ describe("state", function()
     eq(STATUS.STOPPED, state.status)
   end)
 
-  it("step() when PAUSED", function()
+  it("step() refresh ui and schedule when PAUSED", function()
     state:start()
     state:pause()
 
     local dirty, next_time = state:step(now)
 
+    eq(true, dirty)
+    eq(true, next_time ~= nil)
+  end)
+
+  it("step() shoud not refresh ui when status is STOPPED", function()
+    state:stop()
+    eq(STATUS.STOPPED, state.status)
+    local dirty, next_time = state:step(now)
+    eq(false, dirty)
+    eq(nil, next_time)
+  end)
+
+  it("step() shoud not refresh ui when status is INIT", function()
+    state:reset()
+    local dirty, next_time = state:step()
+    eq(STATUS.INIT, state.status)
     eq(false, dirty)
     eq(nil, next_time)
   end)
@@ -671,17 +687,29 @@ describe("state", function()
   it(
     "stop with force does not trigger UI refresh if already stopped",
     function()
-      eq(0, state.active)
-      eq(STATUS.INIT, state.status)
+      state:stop(true)
+      eq(STATUS.STOPPED, state.status)
 
       -- Force stop on already stopped spinner should return false (no UI refresh needed)
       local fully_stopped, refresh_needed = state:stop(true)
       eq(true, fully_stopped)
       eq(false, refresh_needed)
       eq(0, state.active)
-      eq(STATUS.INIT, state.status)
+      eq(STATUS.STOPPED, state.status)
     end
   )
+
+  it("stop() shoud refresh ui if current status is INIT", function()
+    local fully_stopped, refresh_ui = state:stop()
+    eq(true, fully_stopped)
+    eq(true, refresh_ui)
+  end)
+
+  it("stop(true) shoud refresh ui if current status is INIT", function()
+    local fully_stopped, refresh_ui = state:stop(true)
+    eq(true, fully_stopped)
+    eq(true, refresh_ui)
+  end)
 
   it(
     "should use on_update_ui callback when provided and update when config changes",
@@ -1234,5 +1262,17 @@ describe("state", function()
     state:start()
 
     eq("{{SPINNER_HIGHLIGHT}}abc{{END_HIGHLIGHT}}", state:render())
+  end)
+
+  it("reset() should reset state status", function()
+    state:start(now)
+    state:stop()
+    state:reset()
+    eq(false, state.started)
+    eq(1, state.index)
+    eq(0, state.active)
+    eq(STATUS.INIT, state.status)
+    eq(0, state.start_time)
+    eq(0, state.last_spin)
   end)
 end)
