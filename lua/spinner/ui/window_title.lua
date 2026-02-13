@@ -42,3 +42,4 @@ return function(state, kind)
     vim.api.nvim_win_set_config(win, win_config)
   end
 end
+-- vim: set ts=2 sts=2 sw=2 et ai si sta:
