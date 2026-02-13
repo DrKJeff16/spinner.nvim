@@ -138,6 +138,7 @@ Setup defaults for spinners.
 require("spinner").setup({
   -- Pre-defined pattern key name in
   -- https://github.com/xieyonn/spinner.nvim/blob/main/lua/spinner/pattern.lua
+  -- or be a table { intervals = 80, frames = { "1", "2" } }
   pattern = "dots",
 
   -- Time-to-live in milliseconds since the most recent start, after which the
@@ -745,10 +746,6 @@ require("spinner").config("my_spinner", {
 
 Set a default string to display when the spinner is idle (init/stopped).
 
-`spinner.nvim` render spinner as an empty string with length == `len(frame)`,
-you can set `placeholder = false` to disable this features. (will show a zero
-length empty string when spinner is idle)
-
 ```lua
 require("spinner").config("my_spinner", {
   kind = "statusline",
@@ -758,7 +755,9 @@ require("spinner").config("my_spinner", {
 })
 ```
 
-> cursor spinner do not support placeholder since it's meaningless.
+- `placeholder = true` render an empty string with length == `len(frames[1])`.
+- `placeholder = false` disable placeholder.
+- `placeholder = ""` equals to `false`.
 
 You can also set it to a `table` to control the placeholder displayed during
 initialization and stop of the spinner.
@@ -778,7 +777,7 @@ require("spinner").config("my_spinner", {
 ## Formatting
 
 You can customize the spinner text format using the `fmt` option. This function
-receives the current text and status and returns the formatted string:
+receives the current text and status and returns the formatted string.
 
 ```lua
 require("spinner").config("my_spinner", {
@@ -790,6 +789,8 @@ require("spinner").config("my_spinner", {
   end
 })
 ```
+
+> highlight only apply to spinner text
 
 ## Highlight
 
