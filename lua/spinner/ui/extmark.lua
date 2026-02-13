@@ -1,5 +1,3 @@
-local STATUS = require("spinner.status")
-
 local spinner_ns = vim.api.nvim_create_namespace("spinner.nvim")
 
 ---@param state spinner.State
@@ -28,7 +26,7 @@ return function(state)
     local text = state:render()
 
     -- only delete extmark if text is empty, eg: we have a non-empty placeholder
-    if (STATUS.STOPPED == state.status) and "" == text then
+    if "" == text then
       if extmark_id then
         pcall(vim.api.nvim_buf_del_extmark, opts.bufnr, ns, extmark_id)
         extmark_id = nil
