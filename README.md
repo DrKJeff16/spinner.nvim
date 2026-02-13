@@ -27,6 +27,8 @@ Extensible spinner framework for Neovim plugins and UI.
     - [Preview](#preview)
     - [Setup](#setup)
 - [Example](#example)
+    - [Lsp Spinner](#lsp-spinner)
+    - [Task List](#task-list)
 - [Usage](#usage)
     - [Statusline](#statusline)
     - [Tabline](#tabline)
@@ -175,10 +177,15 @@ require("spinner").setup({
 
 # Example
 
-<img src="https://github.com/user-attachments/assets/19fe17a9-5359-478e-8b6f-a0b8a2319229" width="700" />
+## Lsp Spinner
 
 - Display lsp client name (lua_ls) and lsp progress in `statusline`.
 - Display spinner right above cursor when press `K` (lsp_hover)
+
+<img src="https://github.com/user-attachments/assets/19fe17a9-5359-478e-8b6f-a0b8a2319229" width="700" />
+
+<details>
+<summary>Click to expand</summary>
 
 1. setup a `statusline` spinner with id `lsp_progress` and attach to `LspProgress`
 
@@ -246,6 +253,93 @@ require("spinner").config("cursor", {
   },
 })
 ```
+
+</details>
+
+## Task List
+
+1. Display a TODO like list in buffer.
+2. Tracking list status.
+
+<img src="https://github.com/user-attachments/assets/ac9b720b-8293-482d-9c5e-a44e291ef540" width="560" />
+
+<details>
+<summary>Click to expand</summary>
+
+```lua
+local sp = require("spinner")
+
+-- 1. Create a scratch buffer
+local bufnr = vim.api.nvim_create_buf(false, true)
+vim.bo[bufnr].buftype = "nofile"
+vim.bo[bufnr].bufhidden = "wipe"
+vim.bo[bufnr].swapfile = false
+vim.bo[bufnr].undofile = false
+
+-- 2. Open a window
+local width = math.floor(vim.o.columns * 0.4)
+local height = math.floor(vim.o.lines * 0.6)
+local row = math.floor((vim.o.lines - height) / 2)
+local col = math.floor((vim.o.columns - width) / 2)
+local win = vim.api.nvim_open_win(bufnr, true, {
+  relative = "editor",
+  row = row,
+  col = col,
+  width = width,
+  height = 8,
+  style = "minimal",
+  focusable = true,
+  border = "rounded",
+  noautocmd = false,
+})
+
+-- 3. close window on q or esc
+for _, key in ipairs({ "q", "<Esc>" }) do
+  vim.keymap.set("n", key, function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end, {
+    buffer = bufnr,
+    nowait = true,
+    silent = true,
+  })
+end
+
+-- 4. render a list
+local todolist = {
+  "   Item 1",
+  "   Item 2",
+  "   Item 3",
+  "   Item 4",
+}
+vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, todolist)
+for i = 1, #todolist do
+  sp.config("todo" .. i, {
+    kind = "extmark",
+    pattern = "blink",
+    placeholder = "●",
+    bufnr = bufnr,
+    row = i - 1,
+    col = 1,
+    ttl_ms = 4000,
+    hl_group = {
+      init = "white", -- init hl_group
+      stopped = "green", -- stopped hl_group
+    },
+    virt_text_pos = "overlay",
+  })
+end
+
+-- 5. start spinner
+for i = 1, #todolist do
+  vim.defer_fn(function()
+    sp.start("todo" .. i)
+  end, i * 1000)
+end
+```
+
+</details>
 
 # Usage
 
