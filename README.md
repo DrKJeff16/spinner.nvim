@@ -456,7 +456,6 @@ create the float window when spinner start/pause, close the float window when st
 Configure a `cursor` spinner with id.
 
 ```lua
-local row, col
 require("spinner").config("cursor", {
   kind = "cursor",
 
@@ -604,8 +603,8 @@ A preview:
 Extend a spinner using the `on_update_ui` option, which is a `function` that
 gets called **every** time the UI needs to be refreshed, including:
 
-- init: When config
-- start: when starting
+- init: when config/reset
+- running: when spinning
 - pause: When paused
 - stop: When stopping
 
